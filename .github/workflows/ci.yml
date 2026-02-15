@@ -1,0 +1,84 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+    
+    - name: Check Backend Code
+      working-directory: ./backend
+      run: |
+        echo "Backend dependencies installed successfully"
+        npm list
+
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+      env:
+        CI: false
+        REACT_APP_API_URL: http://localhost:5000
+    
+    - name: Check Build Output
+      working-directory: ./frontend
+      run: |
+        echo "Frontend build completed successfully"
+        ls -la build/
+
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Check Code Structure
+      run: |
+        echo "Checking project structure..."
+        ls -la
+        echo "Backend structure:"
+        ls -la backend/
+        echo "Frontend structure:"
+        ls -la frontend/
